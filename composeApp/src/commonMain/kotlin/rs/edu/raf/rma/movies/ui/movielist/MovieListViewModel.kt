@@ -75,12 +75,21 @@ class MovieListViewModel(
     }
 
     private fun changeSort(sortBy: String) {
-        _state.update { it.copy(sortBy = sortBy) }
+        _state.update {
+            it.copy(
+                sortBy = sortBy,
+                activeFilters = it.activeFilters.copy(sortBy = sortBy)
+            )
+        }
         loadMovies()
     }
 
     private fun applyFilters(filters: FilterParams) {
-        _state.update { it.copy(activeFilters = filters) }
+        _state.update {
+            it.copy(
+                activeFilters = filters.copy(sortBy = it.sortBy)
+            )
+        }
         loadMovies()
     }
 }

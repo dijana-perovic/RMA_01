@@ -1,0 +1,14 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+/build/
+/captures/
+.externalNativeBuild/
+.caches/
+androidApp/build/
+composeApp/build/
+desktopApp/build/
+kotlin/build/
+*.keystore
+!debug.keystore

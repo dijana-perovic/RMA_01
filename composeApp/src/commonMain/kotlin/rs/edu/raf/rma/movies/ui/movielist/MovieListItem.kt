@@ -38,8 +38,7 @@ fun MovieListItem(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .clickable { onClick() },
+        modifier = Modifier.clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(

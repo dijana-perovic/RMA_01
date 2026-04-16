@@ -12,3 +12,4 @@ desktopApp/build/
 kotlin/build/
 *.keystore
 !debug.keystore
+**/.DS_Store

@@ -24,8 +24,18 @@ class DetailViewModel(
             is DetailIntent.Retry -> {
                 _state.value.movie?.imdbId?.let { loadDetail(it) }
             }
-            is DetailIntent.PlayTrailer -> { }
+            is DetailIntent.PlayTrailer -> {
+                _state.value.trailerKey?.let { key ->
+                    _state.update {
+                        it.copy(trailerUrl = "https://www.youtube.com/watch?v=$key")
+                    }
+                }
+            }
         }
+    }
+
+    fun clearTrailerUrl() {
+        _state.update { it.copy(trailerUrl = null) }
     }
 
     private fun loadDetail(movieId: String) {

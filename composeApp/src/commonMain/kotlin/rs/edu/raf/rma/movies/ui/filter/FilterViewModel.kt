@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import rs.edu.raf.rma.movies.domain.model.FilterParams
 import rs.edu.raf.rma.movies.domain.repository.GenreRepository
 
 class FilterViewModel(
@@ -21,17 +20,14 @@ class FilterViewModel(
         loadGenres()
     }
 
-    fun initWithFilters(params: FilterParams) {
-        _state.update { current ->
-            FilterState.fromFilterParams(params).copy(
-                genres = current.genres,
-                isLoadingGenres = current.isLoadingGenres
-            )
-        }
-    }
-
     fun sendIntent(intent: FilterIntent) {
         when (intent) {
+            is FilterIntent.Initialize -> _state.update { current ->
+                FilterState.fromFilterParams(intent.params).copy(
+                    genres = current.genres,
+                    isLoadingGenres = current.isLoadingGenres
+                )
+            }
             is FilterIntent.UpdateSearch -> _state.update {
                 it.copy(searchQuery = intent.query)
             }
@@ -61,6 +57,10 @@ class FilterViewModel(
                 )
             }
             is FilterIntent.Apply -> { }
+            is FilterIntent.RetryGenres -> loadGenres()
+            is FilterIntent.LoadGenresIfEmpty -> {
+                if (_state.value.genres.isEmpty()) loadGenres()
+            }
         }
     }
 
@@ -89,16 +89,6 @@ class FilterViewModel(
                     )
                 }
             }
-        }
-    }
-
-    fun retryLoadGenres() {
-        loadGenres()
-    }
-
-    fun loadGenresIfEmpty() {
-        if (_state.value.genres.isEmpty()) {
-            loadGenres()
         }
     }
 }

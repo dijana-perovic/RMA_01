@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import rs.edu.raf.rma.movies.ui.detail.DetailScreen
+import rs.edu.raf.rma.movies.ui.filter.FilterIntent
 import rs.edu.raf.rma.movies.ui.filter.FilterScreen
 import rs.edu.raf.rma.movies.ui.filter.FilterViewModel
 import rs.edu.raf.rma.movies.ui.movielist.MovieListIntent
@@ -26,12 +27,14 @@ fun AppNavGraph() {
         composable(Screen.MovieList.route) {
             MovieListScreen(
                 onMovieClick = { movieId ->
-                    movieListViewModel.selectMovie(movieId)
+                    movieListViewModel.sendIntent(MovieListIntent.SelectMovie(movieId))
                     navController.navigate(Screen.Detail.route)
                 },
                 onFilterClick = {
-                    filterViewModel.initWithFilters(movieListViewModel.state.value.activeFilters)
-                    filterViewModel.loadGenresIfEmpty()
+                    filterViewModel.sendIntent(
+                        FilterIntent.Initialize(movieListViewModel.state.value.activeFilters)
+                    )
+                    filterViewModel.sendIntent(FilterIntent.LoadGenresIfEmpty)
                     navController.navigate(Screen.Filter.route)
                 },
                 viewModel = movieListViewModel

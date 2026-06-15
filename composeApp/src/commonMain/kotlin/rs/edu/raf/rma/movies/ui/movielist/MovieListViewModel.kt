@@ -29,13 +29,12 @@ class MovieListViewModel(
             is MovieListIntent.Retry -> loadMovies()
             is MovieListIntent.ChangeSort -> changeSort(intent.sortBy)
             is MovieListIntent.ApplyFilters -> applyFilters(intent.filters)
+            is MovieListIntent.SelectMovie -> _state.update {
+                it.copy(selectedMovieId = intent.movieId)
+            }
             is MovieListIntent.OpenFilter -> { }
             is MovieListIntent.OpenDetail -> { }
         }
-    }
-
-    fun selectMovie(movieId: String) {
-        _state.update { it.copy(selectedMovieId = movieId) }
     }
 
     private fun loadMovies() {

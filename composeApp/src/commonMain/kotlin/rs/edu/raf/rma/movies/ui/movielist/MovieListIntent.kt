@@ -9,4 +9,5 @@ sealed class MovieListIntent {
     data class OpenDetail(val movieId: String) : MovieListIntent()
     data class ChangeSort(val sortBy: String) : MovieListIntent()
     data class ApplyFilters(val filters: FilterParams) : MovieListIntent()
+    data class SelectMovie(val movieId: String) : MovieListIntent()
 }

@@ -61,8 +61,17 @@ fun DetailScreen(
     val state by viewModel.state.collectAsState()
     val uriHandler = LocalUriHandler.current
 
+    // učitaj detalje kada se otvori ekran
     LaunchedEffect(movieId) {
         viewModel.sendIntent(DetailIntent.LoadDetail(movieId))
+    }
+
+    // prati trailerUrl — kada ViewModel postavi URL, otvori ga
+    LaunchedEffect(state.trailerUrl) {
+        state.trailerUrl?.let { url ->
+            uriHandler.openUri(url)
+            viewModel.clearTrailerUrl()
+        }
     }
 
     Scaffold(
@@ -112,8 +121,8 @@ fun DetailScreen(
                 DetailContent(
                     state = state,
                     modifier = Modifier.padding(paddingValues),
-                    onPlayTrailer = { key ->
-                        uriHandler.openUri("https://www.youtube.com/watch?v=$key")
+                    onPlayTrailer = {
+                        viewModel.sendIntent(DetailIntent.PlayTrailer)
                     }
                 )
             }
@@ -126,7 +135,7 @@ fun DetailScreen(
 private fun DetailContent(
     state: DetailState,
     modifier: Modifier = Modifier,
-    onPlayTrailer: (String) -> Unit
+    onPlayTrailer: () -> Unit
 ) {
     val movie = state.movie ?: return
     val config = state.imageConfig
@@ -152,9 +161,9 @@ private fun DetailContent(
             )
 
             // Play dugme
-            state.trailerKey?.let { key ->
+            if (state.trailerKey != null) {
                 FilledIconButton(
-                    onClick = { onPlayTrailer(key) },
+                    onClick = { onPlayTrailer() },
                     modifier = Modifier
                         .align(Alignment.Center)
                         .size(56.dp)

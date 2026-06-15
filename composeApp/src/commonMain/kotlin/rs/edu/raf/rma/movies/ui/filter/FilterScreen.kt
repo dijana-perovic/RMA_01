@@ -98,6 +98,7 @@ fun FilterScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Search
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { viewModel.sendIntent(FilterIntent.UpdateSearch(it)) },
@@ -107,6 +108,7 @@ fun FilterScreen(
                 singleLine = true
             )
 
+            // Žanrovi
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = "Genre",
@@ -124,7 +126,9 @@ fun FilterScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
-                        Button(onClick = { viewModel.retryLoadGenres() }) {
+                        Button(onClick = {
+                            viewModel.sendIntent(FilterIntent.RetryGenres)
+                        }) {
                             Text("Retry")
                         }
                     }
@@ -151,6 +155,7 @@ fun FilterScreen(
                 }
             }
 
+            // Year range
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = "Year range",
@@ -180,6 +185,7 @@ fun FilterScreen(
                 }
             }
 
+            // Min rating
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

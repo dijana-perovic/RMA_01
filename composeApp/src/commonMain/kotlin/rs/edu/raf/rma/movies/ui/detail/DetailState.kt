@@ -13,7 +13,8 @@ data class DetailState(
     val cast: List<CastMember> = emptyList(),
     val videos: List<MovieVideo> = emptyList(),
     val imageConfig: ImageConfig? = null,
-    val error: String? = null
+    val error: String? = null,
+    val trailerUrl: String? = null
 ) {
     val trailerKey: String? get() = videos.firstOrNull { it.site == "YouTube" }?.key
     val isSuccess: Boolean get() = !isLoading && error == null && movie != null

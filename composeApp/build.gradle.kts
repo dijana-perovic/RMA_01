@@ -18,7 +18,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -41,6 +41,12 @@ kotlin {
 
             // Room
             implementation(libs.room.runtime.android)
+
+            // DataStore
+            implementation(libs.datastore.preferences)
+
+            // Koin Android
+            implementation(libs.koin.android)
         }
         commonMain.dependencies {
             // Compose Multiplatform
@@ -85,6 +91,9 @@ kotlin {
             // Room
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)
+
+            // DataStore
+            implementation(libs.datastore.core.okio)
 
             // Image Loading
             implementation(libs.coil.compose)

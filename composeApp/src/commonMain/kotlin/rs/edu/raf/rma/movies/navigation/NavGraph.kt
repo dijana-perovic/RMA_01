@@ -1,10 +1,19 @@
 package rs.edu.raf.rma.movies.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import rs.edu.raf.rma.movies.core.auth.AuthStore
+import rs.edu.raf.rma.movies.core.auth.model.AuthState
+import rs.edu.raf.rma.movies.ui.auth.AuthContract
+import rs.edu.raf.rma.movies.ui.auth.AuthScreen
+import rs.edu.raf.rma.movies.ui.auth.AuthViewModel
 import rs.edu.raf.rma.movies.ui.detail.DetailScreen
 import rs.edu.raf.rma.movies.ui.filter.FilterIntent
 import rs.edu.raf.rma.movies.ui.filter.FilterScreen
@@ -14,17 +23,48 @@ import rs.edu.raf.rma.movies.ui.movielist.MovieListScreen
 import rs.edu.raf.rma.movies.ui.movielist.MovieListViewModel
 
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(startDestination: String) {
     val navController = rememberNavController()
+
+    val authStore: AuthStore = koinInject()
+    val authState by authStore.authState.collectAsState()
+
+    // Forced logout
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Unauthenticated) {
+            val current = navController.currentBackStackEntry?.destination?.route
+            if (current != null && current != Screen.Auth.route) {
+                navController.navigate(Screen.Auth.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
 
     val movieListViewModel: MovieListViewModel = koinViewModel()
     val filterViewModel: FilterViewModel = koinViewModel()
 
     NavHost(
         navController = navController,
-        startDestination = Screen.MovieList.route
+        startDestination = startDestination
     ) {
-        composable(Screen.MovieList.route) {
+
+        composable(route = Screen.Auth.route) {
+            val viewModel = koinViewModel<AuthViewModel>()
+            LaunchedEffect(viewModel) {
+                viewModel.sideEffects.collect { effect ->
+                    when (effect) {
+                        AuthContract.SideEffect.NavigateToHome ->
+                            navController.navigate(Screen.MovieList.route) {
+                                popUpTo(Screen.Auth.route) { inclusive = true }
+                            }
+                    }
+                }
+            }
+            AuthScreen(viewModel = viewModel)
+        }
+
+        composable(route = Screen.MovieList.route) {
             MovieListScreen(
                 onMovieClick = { movieId ->
                     movieListViewModel.sendIntent(MovieListIntent.SelectMovie(movieId))
@@ -41,13 +81,11 @@ fun AppNavGraph() {
             )
         }
 
-        composable(Screen.Filter.route) {
+        composable(route = Screen.Filter.route) {
             FilterScreen(
                 onBack = { navController.popBackStack() },
                 onApply = { filterParams ->
-                    movieListViewModel.sendIntent(
-                        MovieListIntent.ApplyFilters(filterParams)
-                    )
+                    movieListViewModel.sendIntent(MovieListIntent.ApplyFilters(filterParams))
                     navController.popBackStack()
                 },
                 viewModel = filterViewModel

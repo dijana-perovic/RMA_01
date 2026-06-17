@@ -1,42 +1,15 @@
 package rs.edu.raf.rma.movies.ui.detail
 
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,23 +27,18 @@ import rs.edu.raf.rma.movies.util.formatVotes
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DetailScreen(
-    movieId: String,
     onBack: () -> Unit,
     viewModel: DetailViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val uriHandler = LocalUriHandler.current
 
-    // učitaj detalje kada se otvori ekran
-    LaunchedEffect(movieId) {
-        viewModel.sendIntent(DetailIntent.LoadDetail(movieId))
-    }
-
-    // prati trailerUrl — kada ViewModel postavi URL, otvori ga
-    LaunchedEffect(state.trailerUrl) {
-        state.trailerUrl?.let { url ->
-            uriHandler.openUri(url)
-            viewModel.clearTrailerUrl()
+    // Konzumiramo SideEffect za otvaranje URL-a
+    LaunchedEffect(viewModel) {
+        viewModel.sideEffects.collect { effect ->
+            when (effect) {
+                is DetailSideEffect.OpenUrl -> uriHandler.openUri(effect.url)
+            }
         }
     }
 
@@ -90,7 +58,7 @@ fun DetailScreen(
         }
     ) { paddingValues ->
         when {
-            state.isLoading -> {
+            state.isLoading && state.movie == null -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -98,7 +66,7 @@ fun DetailScreen(
                     CircularProgressIndicator()
                 }
             }
-            state.error != null -> {
+            state.error != null && state.movie == null -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -110,7 +78,7 @@ fun DetailScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = {
-                            viewModel.sendIntent(DetailIntent.Retry)
+                            viewModel.setEvent(DetailIntent.Retry)
                         }) {
                             Text("Retry")
                         }
@@ -122,7 +90,7 @@ fun DetailScreen(
                     state = state,
                     modifier = Modifier.padding(paddingValues),
                     onPlayTrailer = {
-                        viewModel.sendIntent(DetailIntent.PlayTrailer)
+                        viewModel.setEvent(DetailIntent.PlayTrailer)
                     }
                 )
             }

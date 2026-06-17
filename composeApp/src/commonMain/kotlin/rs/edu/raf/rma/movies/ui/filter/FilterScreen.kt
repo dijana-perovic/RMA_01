@@ -1,54 +1,41 @@
 package rs.edu.raf.rma.movies.ui.filter
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
-import rs.edu.raf.rma.movies.domain.model.FilterParams
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FilterScreen(
+    viewModel: FilterViewModel = koinViewModel(),
     onBack: () -> Unit,
-    onApply: (FilterParams) -> Unit,
-    viewModel: FilterViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
+    FilterScreen(
+        state = state,
+        onBack = onBack,
+        eventPublisher = viewModel::setEvent,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun FilterScreen(
+    state: FilterContract.UiState,
+    onBack: () -> Unit,
+    eventPublisher: (FilterContract.UiEvent) -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,16 +58,13 @@ fun FilterScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = { viewModel.sendIntent(FilterIntent.ClearAll) },
+                    onClick = { eventPublisher(FilterContract.UiEvent.ClearAll) },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Clear All")
                 }
                 Button(
-                    onClick = {
-                        viewModel.sendIntent(FilterIntent.Apply)
-                        onApply(state.toFilterParams())
-                    },
+                    onClick = { eventPublisher(FilterContract.UiEvent.Apply) },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Apply Filters")
@@ -101,7 +85,7 @@ fun FilterScreen(
             // Search
             OutlinedTextField(
                 value = state.searchQuery,
-                onValueChange = { viewModel.sendIntent(FilterIntent.UpdateSearch(it)) },
+                onValueChange = { eventPublisher(FilterContract.UiEvent.UpdateSearch(it)) },
                 label = { Text("Search by title") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -110,44 +94,37 @@ fun FilterScreen(
 
             // Žanrovi
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Genre",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                if (state.isLoadingGenres) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                } else if (state.genres.isEmpty()) {
-                    Column(
+                Text("Genre", style = MaterialTheme.typography.titleSmall)
+                when {
+                    state.isLoadingGenres -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    state.isEmpty -> Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = state.error ?: "Could not load genres",
+                            text = state.error?.message ?: "Could not load genres",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
                         Button(onClick = {
-                            viewModel.sendIntent(FilterIntent.RetryGenres)
+                            eventPublisher(FilterContract.UiEvent.RetryGenres)
                         }) {
                             Text("Retry")
                         }
                     }
-                } else {
-                    FlowRow(
+                    else -> FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         FilterChip(
                             selected = state.selectedGenreIds.isEmpty(),
-                            onClick = { viewModel.sendIntent(FilterIntent.ClearAll) },
+                            onClick = { eventPublisher(FilterContract.UiEvent.ClearAll) },
                             label = { Text("All") }
                         )
                         state.genres.forEach { genre ->
                             FilterChip(
                                 selected = state.selectedGenreIds.contains(genre.id),
-                                onClick = {
-                                    viewModel.sendIntent(FilterIntent.ToggleGenre(genre.id))
-                                },
+                                onClick = { eventPublisher(FilterContract.UiEvent.ToggleGenre(genre.id)) },
                                 label = { Text(genre.name) }
                             )
                         }
@@ -165,7 +142,7 @@ fun FilterScreen(
                     OutlinedTextField(
                         value = state.yearFrom?.toString() ?: "",
                         onValueChange = {
-                            viewModel.sendIntent(FilterIntent.SetYearFrom(it.toIntOrNull()))
+                            eventPublisher(FilterContract.UiEvent.SetYearFrom(it.toIntOrNull()))
                         },
                         label = { Text("From") },
                         modifier = Modifier.weight(1f),
@@ -175,7 +152,7 @@ fun FilterScreen(
                     OutlinedTextField(
                         value = state.yearTo?.toString() ?: "",
                         onValueChange = {
-                            viewModel.sendIntent(FilterIntent.SetYearTo(it.toIntOrNull()))
+                            eventPublisher(FilterContract.UiEvent.SetYearTo(it.toIntOrNull()))
                         },
                         label = { Text("To") },
                         modifier = Modifier.weight(1f),
@@ -207,9 +184,7 @@ fun FilterScreen(
                 Slider(
                     value = state.minRating ?: 0f,
                     onValueChange = {
-                        viewModel.sendIntent(
-                            FilterIntent.SetMinRating(if (it == 0f) null else it)
-                        )
+                        eventPublisher(FilterContract.UiEvent.SetMinRating(if (it == 0f) null else it))
                     },
                     valueRange = 0f..10f,
                     steps = 19

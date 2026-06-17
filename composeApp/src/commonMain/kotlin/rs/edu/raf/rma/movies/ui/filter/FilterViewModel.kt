@@ -2,10 +2,13 @@ package rs.edu.raf.rma.movies.ui.filter
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import rs.edu.raf.rma.movies.domain.repository.GenreRepository
 
@@ -13,82 +16,97 @@ class FilterViewModel(
     private val genreRepository: GenreRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(FilterState())
-    val state: StateFlow<FilterState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(FilterContract.UiState())
+    val state = _state.asStateFlow()
 
-    init {
-        loadGenres()
+    private fun setState(reducer: FilterContract.UiState.() -> FilterContract.UiState) =
+        _state.getAndUpdate(reducer)
+
+    private val events = MutableSharedFlow<FilterContract.UiEvent>()
+    fun setEvent(event: FilterContract.UiEvent) {
+        viewModelScope.launch { events.emit(event) }
     }
 
-    fun sendIntent(intent: FilterIntent) {
-        when (intent) {
-            is FilterIntent.Initialize -> _state.update { current ->
-                FilterState.fromFilterParams(intent.params).copy(
-                    genres = current.genres,
-                    isLoadingGenres = current.isLoadingGenres
-                )
+    private val _sideEffects = MutableSharedFlow<FilterContract.SideEffect>()
+    val sideEffects = _sideEffects.asSharedFlow()
+
+    init {
+        observeEvents()
+        observeGenresFromRoom()
+        setEvent(FilterContract.UiEvent.LoadGenresIfEmpty)
+    }
+
+    private fun observeGenresFromRoom() {
+        genreRepository.observeGenres()
+            .onEach { genres ->
+                setState { copy(genres = genres, isLoadingGenres = false) }
             }
-            is FilterIntent.UpdateSearch -> _state.update {
-                it.copy(searchQuery = intent.query)
-            }
-            is FilterIntent.ToggleGenre -> _state.update { state ->
-                val updated = state.selectedGenreIds.toMutableSet().apply {
-                    if (contains(intent.genreId)) remove(intent.genreId)
-                    else add(intent.genreId)
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeEvents() {
+        viewModelScope.launch {
+            events.collect { event ->
+                when (event) {
+                    is FilterContract.UiEvent.Initialize ->
+                        setState {
+                            FilterContract.UiState.fromFilterParams(event.params).copy(
+                                genres          = genres,
+                                isLoadingGenres = isLoadingGenres
+                            )
+                        }
+
+                    is FilterContract.UiEvent.UpdateSearch ->
+                        setState { copy(searchQuery = event.query) }
+
+                    is FilterContract.UiEvent.ToggleGenre -> {
+                        val updated = _state.value.selectedGenreIds.toMutableSet().apply {
+                            if (contains(event.genreId)) remove(event.genreId)
+                            else add(event.genreId)
+                        }
+                        setState { copy(selectedGenreIds = updated) }
+                    }
+
+                    is FilterContract.UiEvent.SetYearFrom ->
+                        setState { copy(yearFrom = event.year) }
+
+                    is FilterContract.UiEvent.SetYearTo ->
+                        setState { copy(yearTo = event.year) }
+
+                    is FilterContract.UiEvent.SetMinRating ->
+                        setState { copy(minRating = event.rating) }
+
+                    is FilterContract.UiEvent.ClearAll ->
+                        setState {
+                            copy(
+                                searchQuery = "",
+                                selectedGenreIds = emptySet(),
+                                yearFrom = null,
+                                yearTo = null,
+                                minRating = null
+                            )
+                        }
+
+                    is FilterContract.UiEvent.Apply ->
+                        _sideEffects.emit(
+                            FilterContract.SideEffect.ApplyAndClose(_state.value.toFilterParams())
+                        )
+
+                    is FilterContract.UiEvent.RetryGenres -> syncGenres()
+
+                    is FilterContract.UiEvent.LoadGenresIfEmpty -> {
+                        if (_state.value.genres.isEmpty()) syncGenres()
+                    }
                 }
-                state.copy(selectedGenreIds = updated)
-            }
-            is FilterIntent.SetYearFrom -> _state.update {
-                it.copy(yearFrom = intent.year)
-            }
-            is FilterIntent.SetYearTo -> _state.update {
-                it.copy(yearTo = intent.year)
-            }
-            is FilterIntent.SetMinRating -> _state.update {
-                it.copy(minRating = intent.rating)
-            }
-            is FilterIntent.ClearAll -> _state.update {
-                it.copy(
-                    searchQuery = "",
-                    selectedGenreIds = emptySet(),
-                    yearFrom = null,
-                    yearTo = null,
-                    minRating = null
-                )
-            }
-            is FilterIntent.Apply -> { }
-            is FilterIntent.RetryGenres -> loadGenres()
-            is FilterIntent.LoadGenresIfEmpty -> {
-                if (_state.value.genres.isEmpty()) loadGenres()
             }
         }
     }
 
-    private fun loadGenres() {
+    private fun syncGenres() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoadingGenres = true, error = null) }
-            try {
-                val genres = genreRepository.getGenres()
-                _state.update { it.copy(genres = genres, isLoadingGenres = false) }
-            } catch (e: io.ktor.client.plugins.HttpRequestTimeoutException) {
-                _state.update {
-                    it.copy(
-                        isLoadingGenres = false,
-                        error = "Request timed out. Please try again."
-                    )
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoadingGenres = false,
-                        error = when {
-                            e.message?.contains("Unable to resolve host") == true ->
-                                "No internet connection"
-                            else -> e.message ?: "Could not load genres"
-                        }
-                    )
-                }
-            }
+            setState { copy(isLoadingGenres = true, error = null) }
+            runCatching { genreRepository.syncGenres() }
+                .onFailure { e -> setState { copy(isLoadingGenres = false, error = e) } }
         }
     }
 }

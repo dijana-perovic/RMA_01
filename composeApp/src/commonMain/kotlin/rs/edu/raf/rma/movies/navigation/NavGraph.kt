@@ -4,9 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import rs.edu.raf.rma.movies.core.auth.AuthStore
@@ -15,10 +17,10 @@ import rs.edu.raf.rma.movies.ui.auth.AuthContract
 import rs.edu.raf.rma.movies.ui.auth.AuthScreen
 import rs.edu.raf.rma.movies.ui.auth.AuthViewModel
 import rs.edu.raf.rma.movies.ui.detail.DetailScreen
-import rs.edu.raf.rma.movies.ui.filter.FilterIntent
+import rs.edu.raf.rma.movies.ui.filter.FilterContract
 import rs.edu.raf.rma.movies.ui.filter.FilterScreen
 import rs.edu.raf.rma.movies.ui.filter.FilterViewModel
-import rs.edu.raf.rma.movies.ui.movielist.MovieListIntent
+import rs.edu.raf.rma.movies.ui.movielist.MovieListContract
 import rs.edu.raf.rma.movies.ui.movielist.MovieListScreen
 import rs.edu.raf.rma.movies.ui.movielist.MovieListViewModel
 
@@ -67,14 +69,16 @@ fun AppNavGraph(startDestination: String) {
         composable(route = Screen.MovieList.route) {
             MovieListScreen(
                 onMovieClick = { movieId ->
-                    movieListViewModel.sendIntent(MovieListIntent.SelectMovie(movieId))
-                    navController.navigate(Screen.Detail.route)
+                    navController.navigate(
+                        Screen.Detail.createRoute(movieId)
+                    )
                 },
                 onFilterClick = {
-                    filterViewModel.sendIntent(
-                        FilterIntent.Initialize(movieListViewModel.state.value.activeFilters)
+                    filterViewModel.setEvent(
+                        FilterContract.UiEvent.Initialize(
+                            movieListViewModel.state.value.activeFilters
+                        )
                     )
-                    filterViewModel.sendIntent(FilterIntent.LoadGenresIfEmpty)
                     navController.navigate(Screen.Filter.route)
                 },
                 viewModel = movieListViewModel
@@ -82,21 +86,31 @@ fun AppNavGraph(startDestination: String) {
         }
 
         composable(route = Screen.Filter.route) {
+            LaunchedEffect(filterViewModel) {
+                filterViewModel.sideEffects.collect { effect ->
+                    when (effect) {
+                        is FilterContract.SideEffect.ApplyAndClose -> {
+                            movieListViewModel.setEvent(
+                                MovieListContract.UiEvent.ApplyFilters(effect.params)
+                            )
+                            navController.popBackStack()
+                        }
+                    }
+                }
+            }
             FilterScreen(
+                viewModel = filterViewModel,
                 onBack = { navController.popBackStack() },
-                onApply = { filterParams ->
-                    movieListViewModel.sendIntent(MovieListIntent.ApplyFilters(filterParams))
-                    navController.popBackStack()
-                },
-                viewModel = filterViewModel
             )
         }
 
-        composable(route = Screen.Detail.route) {
-            val movieId = movieListViewModel.state.value.selectedMovieId
-                ?: return@composable
+        composable(
+            route = Screen.Detail.route,
+            arguments = listOf(
+                navArgument("movieId") { type = NavType.StringType }
+            )
+        ) {
             DetailScreen(
-                movieId = movieId,
                 onBack = { navController.popBackStack() }
             )
         }

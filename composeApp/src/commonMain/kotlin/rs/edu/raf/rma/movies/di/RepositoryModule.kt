@@ -9,7 +9,7 @@ import rs.edu.raf.rma.movies.domain.repository.GenreRepository
 import rs.edu.raf.rma.movies.domain.repository.MovieRepository
 
 val moviesRepositoryModule = module {
-    single<MovieRepository> { MovieRepositoryImpl(get()) }
-    single<GenreRepository> { GenreRepositoryImpl(get()) }
+    single<MovieRepository> { MovieRepositoryImpl(get(), get()) }
+    single<GenreRepository> { GenreRepositoryImpl(get(), get()) }
     single<ConfigRepository> { ConfigRepositoryImpl(get()) }
 }

@@ -9,13 +9,14 @@ import rs.edu.raf.rma.movies.domain.model.MovieVideo
 data class DetailState(
     val isLoading: Boolean = false,
     val movie: MovieDetail? = null,
-    val images: List<MovieImage> = emptyList(),
-    val cast: List<CastMember> = emptyList(),
-    val videos: List<MovieVideo> = emptyList(),
     val imageConfig: ImageConfig? = null,
     val error: String? = null,
-    val trailerUrl: String? = null
 ) {
+    val images: List<MovieImage> get() = movie?.images ?: emptyList()
+    val cast: List<CastMember> get() = movie?.cast ?: emptyList()
+    val videos: List<MovieVideo> get() = movie?.videos ?: emptyList()
+
     val trailerKey: String? get() = videos.firstOrNull { it.site == "YouTube" }?.key
     val isSuccess: Boolean get() = !isLoading && error == null && movie != null
+    val isOffline: Boolean get() = error?.contains("Unable to resolve host") == true
 }

@@ -1,7 +1,11 @@
-package rs.edu.raf.rma.movies.domain.model
+package rs.edu.raf.rma.movies.data.local.entity
 
-data class MovieDetail(
-    val imdbId: String,
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "movie_details")
+data class MovieDetailEntity(
+    @PrimaryKey val imdbId: String,
     val tmdbId: Int?,
     val title: String,
     val originalTitle: String?,
@@ -18,8 +22,8 @@ data class MovieDetail(
     val tmdbRating: Float?,
     val posterPath: String?,
     val backdropPath: String?,
-    val genres: List<Genre>,
-    val cast: List<CastMember> = emptyList(),
-    val images: List<MovieImage> = emptyList(),
-    val videos: List<MovieVideo> = emptyList()
+    val genresJson: String,
+    val castJson: String,
+    val imagesJson: String,
+    val videosJson: String
 )

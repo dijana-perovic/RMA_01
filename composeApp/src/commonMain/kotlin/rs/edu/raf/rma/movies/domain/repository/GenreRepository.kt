@@ -1,7 +1,9 @@
 package rs.edu.raf.rma.movies.domain.repository
 
+import kotlinx.coroutines.flow.Flow
 import rs.edu.raf.rma.movies.domain.model.Genre
 
 interface GenreRepository {
-    suspend fun getGenres(): List<Genre>
+    fun observeGenres(): Flow<List<Genre>>
+    suspend fun syncGenres()
 }

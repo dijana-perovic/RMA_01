@@ -1,9 +1,11 @@
 package rs.edu.raf.rma.movies.data.local.mapper
 
 import kotlinx.serialization.json.Json
+import rs.edu.raf.rma.movies.data.local.entity.FavoriteEntity
 import rs.edu.raf.rma.movies.data.local.entity.GenreEntity
 import rs.edu.raf.rma.movies.data.local.entity.MovieDetailEntity
 import rs.edu.raf.rma.movies.data.local.entity.MovieEntity
+import rs.edu.raf.rma.movies.data.local.entity.WatchlistEntity
 import rs.edu.raf.rma.movies.data.remote.dto.CastMemberDto
 import rs.edu.raf.rma.movies.data.remote.dto.GenreDto
 import rs.edu.raf.rma.movies.data.remote.dto.MovieDetailDto
@@ -103,3 +105,47 @@ fun MovieDetailEntity.toDomain() = MovieDetail(
 )
 
 fun GenreEntity.toDomain() = Genre(id = id, name = name)
+
+// MovieDto → FavoriteEntity / WatchlistEntity
+
+fun MovieDto.toFavoriteEntity() = FavoriteEntity(
+    imdbId = imdbId,
+    title = title,
+    year = year,
+    imdbRating = imdbRating?.toDouble(),
+    posterPath = posterPath,
+    genresJson = json.encodeToString(genres),
+)
+
+fun MovieDto.toWatchlistEntity() = WatchlistEntity(
+    imdbId = imdbId,
+    title = title,
+    year = year,
+    imdbRating = imdbRating?.toDouble(),
+    posterPath = posterPath,
+    genresJson = json.encodeToString(genres),
+)
+
+// FavoriteEntity / WatchlistEntity → Domain
+
+fun FavoriteEntity.toDomain() = Movie(
+    imdbId     = imdbId,
+    title      = title,
+    year       = year,
+    imdbRating = imdbRating,
+    imdbVotes  = null,
+    posterPath = posterPath,
+    genres     = json.decodeFromString<List<GenreDto>>(genresJson)
+        .map { Genre(it.id, it.name) },
+)
+
+fun WatchlistEntity.toDomain() = Movie(
+    imdbId     = imdbId,
+    title      = title,
+    year       = year,
+    imdbRating = imdbRating,
+    imdbVotes  = null,
+    posterPath = posterPath,
+    genres     = json.decodeFromString<List<GenreDto>>(genresJson)
+        .map { Genre(it.id, it.name) },
+)

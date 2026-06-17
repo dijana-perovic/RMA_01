@@ -17,12 +17,14 @@ import rs.edu.raf.rma.movies.ui.auth.AuthContract
 import rs.edu.raf.rma.movies.ui.auth.AuthScreen
 import rs.edu.raf.rma.movies.ui.auth.AuthViewModel
 import rs.edu.raf.rma.movies.ui.detail.DetailScreen
+import rs.edu.raf.rma.movies.ui.favorites.FavoritesScreen
 import rs.edu.raf.rma.movies.ui.filter.FilterContract
 import rs.edu.raf.rma.movies.ui.filter.FilterScreen
 import rs.edu.raf.rma.movies.ui.filter.FilterViewModel
 import rs.edu.raf.rma.movies.ui.movielist.MovieListContract
 import rs.edu.raf.rma.movies.ui.movielist.MovieListScreen
 import rs.edu.raf.rma.movies.ui.movielist.MovieListViewModel
+import rs.edu.raf.rma.movies.ui.watchlist.WatchlistScreen
 
 @Composable
 fun AppNavGraph(startDestination: String) {
@@ -112,6 +114,24 @@ fun AppNavGraph(startDestination: String) {
         ) {
             DetailScreen(
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Favorites.route) {
+            FavoritesScreen(
+                viewModel = koinViewModel(),
+                onMovieClick = { movieId ->
+                    navController.navigate(Screen.Detail.createRoute(movieId))
+                }
+            )
+        }
+
+        composable(Screen.Watchlist.route) {
+            WatchlistScreen(
+                viewModel = koinViewModel(),
+                onMovieClick = { movieId ->
+                    navController.navigate(Screen.Detail.createRoute(movieId))
+                }
             )
         }
     }

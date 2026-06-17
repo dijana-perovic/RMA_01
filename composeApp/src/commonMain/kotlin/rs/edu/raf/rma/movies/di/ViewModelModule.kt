@@ -4,9 +4,11 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import rs.edu.raf.rma.movies.ui.auth.AuthViewModel
 import rs.edu.raf.rma.movies.ui.detail.DetailViewModel
+import rs.edu.raf.rma.movies.ui.favorites.FavoritesViewModel
 import rs.edu.raf.rma.movies.ui.filter.FilterViewModel
 import rs.edu.raf.rma.movies.ui.movielist.MovieListViewModel
 import rs.edu.raf.rma.movies.ui.splash.SplashViewModel
+import rs.edu.raf.rma.movies.ui.watchlist.WatchlistViewModel
 
 val moviesViewModelModule = module {
     viewModelOf(::SplashViewModel)
@@ -14,4 +16,6 @@ val moviesViewModelModule = module {
     viewModelOf(::MovieListViewModel)
     viewModelOf(::FilterViewModel)
     viewModelOf(::DetailViewModel)
+    viewModelOf(::FavoritesViewModel)
+    viewModelOf(::WatchlistViewModel)
 }

@@ -69,4 +69,6 @@ class FavoriteRepositoryImpl(
             throw it
         }
     }
+
+    override suspend fun clearAll() = favoriteDao.clearAll()
 }

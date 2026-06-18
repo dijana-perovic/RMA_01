@@ -1,7 +1,6 @@
 package rs.edu.raf.rma.movies.data.remote
 
 import de.jensklingenberg.ktorfit.http.Body
-import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.POST
 import rs.edu.raf.rma.movies.data.remote.dto.AuthResponseDto
 import rs.edu.raf.rma.movies.data.remote.dto.LoginRequestDto
@@ -14,7 +13,4 @@ interface AuthApi {
 
     @POST("auth/signup")
     suspend fun register(@Body request: RegisterRequestDto): AuthResponseDto
-
-    @GET("me")
-    suspend fun getMe(): AuthResponseDto
 }

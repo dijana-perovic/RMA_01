@@ -25,6 +25,9 @@ interface FavoriteDao {
     @Query("DELETE FROM favorites")
     suspend fun clearAll()
 
+    @Query("SELECT COUNT(*) FROM favorites")
+    fun observeCount(): Flow<Int>
+
     @Transaction
     suspend fun replaceAll(entities: List<FavoriteEntity>) {
         clearAll()

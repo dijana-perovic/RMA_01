@@ -1,8 +1,8 @@
 package rs.edu.raf.rma.movies.ui.movielist
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
@@ -68,12 +68,7 @@ private fun MovieListScreen(
             )
 
             when {
-                state.isLoading -> Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
-
-                state.error != null -> Box(
+                state.error != null && state.movies.isEmpty() -> Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -90,6 +85,13 @@ private fun MovieListScreen(
                     }
                 }
 
+                state.isEmpty && state.isLoading -> Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+
                 state.isEmpty -> Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -100,22 +102,39 @@ private fun MovieListScreen(
                     )
                 }
 
-                state.isSuccess -> Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Spacer(Modifier.height(4.dp))
-                    state.movies.forEach { movie ->
-                        MovieListItem(
-                            movie = movie,
-                            imageConfig = state.imageConfig,
-                            onClick = { onMovieClick(movie.imdbId) }
-                        )
+                else -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+
+                        if (state.isLoading) {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(
+                                top = 4.dp,
+                                bottom = 16.dp
+                            )
+                        ) {
+                            items(
+                                items = state.movies,
+                                key = { it.imdbId }
+                            ) { movie ->
+                                MovieListItem(
+                                    movie = movie,
+                                    imageConfig = state.imageConfig,
+                                    onClick = { onMovieClick(movie.imdbId) }
+                                )
+                            }
+                        }
                     }
-                    Spacer(Modifier.height(16.dp))
                 }
             }
         }

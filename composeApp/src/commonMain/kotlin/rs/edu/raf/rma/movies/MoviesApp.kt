@@ -3,6 +3,7 @@ package rs.edu.raf.rma.movies
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import org.koin.compose.viewmodel.koinViewModel
 import rs.edu.raf.rma.movies.navigation.AppNavGraph
 import rs.edu.raf.rma.movies.navigation.Screen
@@ -17,15 +18,15 @@ fun MoviesApp() {
     val isLoggedIn by splashViewModel.isLoggedIn.collectAsState()
 
     when (bootState) {
-        BootState.Loading -> SplashScreen()
-
+        BootState.Loading   -> SplashScreen()
         is BootState.Failed -> SplashScreen()
-
-        BootState.Success -> {
-            AppNavGraph(
-                startDestination = if (isLoggedIn) Screen.MovieList.route
-                else Screen.Auth.route,
-            )
+        BootState.Success   -> {
+            key(isLoggedIn) {
+                AppNavGraph(
+                    startDestination = if (isLoggedIn) Screen.MovieList.route
+                    else Screen.Auth.route,
+                )
+            }
         }
     }
 }

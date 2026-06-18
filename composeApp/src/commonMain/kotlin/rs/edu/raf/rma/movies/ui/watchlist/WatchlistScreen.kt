@@ -97,32 +97,42 @@ private fun WatchlistScreen(
                 }
 
                 else -> {
-                    state.watchlist.forEach { movie ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(end = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                MovieListItem(
-                                    movie = movie,
-                                    imageConfig = state.imageConfig,
-                                    onClick = { onMovieClick(movie.imdbId) },
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                    eventPublisher(
-                                        WatchlistContract.UiEvent.RemoveFromWatchlist(movie.imdbId)
-                                    )
-                                }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        state.watchlist.forEach { movie ->
+                            Card(
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = "Remove from watchlist",
-                                    tint = MaterialTheme.colorScheme.error,
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        MovieListItem(
+                                            movie = movie,
+                                            imageConfig = state.imageConfig,
+                                            onClick = { onMovieClick(movie.imdbId) },
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = {
+                                            eventPublisher(
+                                                WatchlistContract.UiEvent.RemoveFromWatchlist(movie.imdbId)
+                                            )
+                                        },
+                                        modifier = Modifier.padding(end = 8.dp),
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Remove from watchlist",
+                                            tint = MaterialTheme.colorScheme.error,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

@@ -80,6 +80,7 @@ class FavoritesViewModel(
             setState { copy(isLoading = true, error = null) }
             runCatching { favoriteRepository.syncFavorites() }
                 .onFailure { e -> setState { copy(isLoading = false, error = e) } }
+            setState { copy(isLoading = false) }
         }
     }
 }

@@ -37,8 +37,9 @@ class MovieRepositoryImpl(
                 genreId   = filters.genreId,
                 minYear   = filters.yearFrom,
                 maxYear   = filters.yearTo,
-                minRating = filters.minRating
+                minRating = filters.minRating,
             )
+            movieDao.clearMovies()
             movieDao.upsertMovies(response.items.map { it.toEntity() })
         }.onFailure { Napier.e("syncMovies failed", it) }
     }

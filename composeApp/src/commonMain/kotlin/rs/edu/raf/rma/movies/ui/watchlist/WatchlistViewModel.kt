@@ -80,6 +80,7 @@ class WatchlistViewModel(
             setState { copy(isLoading = true, error = null) }
             runCatching { watchlistRepository.syncWatchlist() }
                 .onFailure { e -> setState { copy(isLoading = false, error = e) } }
+            setState { copy(isLoading = false) }
         }
     }
 }

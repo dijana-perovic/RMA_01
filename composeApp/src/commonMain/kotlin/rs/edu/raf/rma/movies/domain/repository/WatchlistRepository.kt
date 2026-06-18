@@ -9,4 +9,5 @@ interface WatchlistRepository {
     suspend fun syncWatchlist()
     suspend fun addToWatchlist(imdbId: String)
     suspend fun removeFromWatchlist(imdbId: String)
+    suspend fun clearAll()
 }

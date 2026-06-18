@@ -25,6 +25,9 @@ interface WatchlistDao {
     @Query("DELETE FROM watchlist")
     suspend fun clearAll()
 
+    @Query("SELECT COUNT(*) FROM watchlist")
+    fun observeCount(): Flow<Int>
+
     @Transaction
     suspend fun replaceAll(entities: List<WatchlistEntity>) {
         clearAll()

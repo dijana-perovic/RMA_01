@@ -14,17 +14,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
+import rs.edu.raf.rma.movies.domain.model.FilterParams
 
 @Composable
 fun FilterScreen(
     viewModel: FilterViewModel = koinViewModel(),
     onBack: () -> Unit,
+    onApply: (FilterParams) -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.setEvent(FilterContract.UiEvent.LoadGenresIfEmpty)
+    }
 
     FilterScreen(
         state = state,
         onBack = onBack,
+        onApply = onApply,
         eventPublisher = viewModel::setEvent,
     )
 }
@@ -34,6 +41,7 @@ fun FilterScreen(
 private fun FilterScreen(
     state: FilterContract.UiState,
     onBack: () -> Unit,
+    onApply: (FilterParams) -> Unit,
     eventPublisher: (FilterContract.UiEvent) -> Unit,
 ) {
     Scaffold(
@@ -64,7 +72,7 @@ private fun FilterScreen(
                     Text("Clear All")
                 }
                 Button(
-                    onClick = { eventPublisher(FilterContract.UiEvent.Apply) },
+                    onClick = { onApply(state.toFilterParams()) },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Apply Filters")

@@ -1,12 +1,19 @@
 package rs.edu.raf.rma.movies.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import org.koin.compose.koinInject
@@ -24,12 +31,19 @@ import rs.edu.raf.rma.movies.ui.filter.FilterViewModel
 import rs.edu.raf.rma.movies.ui.movielist.MovieListContract
 import rs.edu.raf.rma.movies.ui.movielist.MovieListScreen
 import rs.edu.raf.rma.movies.ui.movielist.MovieListViewModel
+import rs.edu.raf.rma.movies.ui.profile.ProfileScreen
 import rs.edu.raf.rma.movies.ui.watchlist.WatchlistScreen
+
+private val bottomNavRoutes = setOf(
+    Screen.MovieList.route,
+    Screen.Favorites.route,
+    Screen.Watchlist.route,
+    Screen.Profile.route,
+)
 
 @Composable
 fun AppNavGraph(startDestination: String) {
     val navController = rememberNavController()
-
     val authStore: AuthStore = koinInject()
     val authState by authStore.authState.collectAsState()
 
@@ -45,94 +59,152 @@ fun AppNavGraph(startDestination: String) {
         }
     }
 
-    val movieListViewModel: MovieListViewModel = koinViewModel()
-    val filterViewModel: FilterViewModel = koinViewModel()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
-    ) {
-
-        composable(route = Screen.Auth.route) {
-            val viewModel = koinViewModel<AuthViewModel>()
-            LaunchedEffect(viewModel) {
-                viewModel.sideEffects.collect { effect ->
-                    when (effect) {
-                        AuthContract.SideEffect.NavigateToHome ->
+    Scaffold(
+        bottomBar = {
+            if (currentRoute in bottomNavRoutes) {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = currentRoute == Screen.MovieList.route,
+                        onClick = {
                             navController.navigate(Screen.MovieList.route) {
-                                popUpTo(Screen.Auth.route) { inclusive = true }
+                                popUpTo(Screen.MovieList.route) { inclusive = true }
                             }
-                    }
+                        },
+                        icon = { Icon(Icons.Default.Movie, contentDescription = "Movies") },
+                        label = { Text("Movies") },
+                    )
+                    NavigationBarItem(
+                        selected = currentRoute == Screen.Favorites.route,
+                        onClick = {
+                            navController.navigate(Screen.Favorites.route) {
+                                popUpTo(Screen.MovieList.route)
+                            }
+                        },
+                        icon = { Icon(Icons.Default.Favorite, contentDescription = "Favorites") },
+                        label = { Text("Favorites") }
+                    )
+                    NavigationBarItem(
+                        selected = currentRoute == Screen.Watchlist.route,
+                        onClick = {
+                            navController.navigate(Screen.Watchlist.route) {
+                                popUpTo(Screen.MovieList.route)
+                            }
+                        },
+                        icon = { Icon(Icons.Default.Bookmark, contentDescription = "Watchlist") },
+                        label = { Text("Watchlist") }
+                    )
+                    NavigationBarItem(
+                        selected = currentRoute == Screen.Profile.route,
+                        onClick = {
+                            navController.navigate(Screen.Profile.route) {
+                                popUpTo(Screen.MovieList.route)
+                            }
+                        },
+                        icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                        label = { Text("Profile") }
+                    )
                 }
             }
-            AuthScreen(viewModel = viewModel)
         }
-
-        composable(route = Screen.MovieList.route) {
-            MovieListScreen(
-                onMovieClick = { movieId ->
-                    navController.navigate(
-                        Screen.Detail.createRoute(movieId)
-                    )
-                },
-                onFilterClick = {
-                    filterViewModel.setEvent(
-                        FilterContract.UiEvent.Initialize(
-                            movieListViewModel.state.value.activeFilters
-                        )
-                    )
-                    navController.navigate(Screen.Filter.route)
-                },
-                viewModel = movieListViewModel
-            )
-        }
-
-        composable(route = Screen.Filter.route) {
-            LaunchedEffect(filterViewModel) {
-                filterViewModel.sideEffects.collect { effect ->
-                    when (effect) {
-                        is FilterContract.SideEffect.ApplyAndClose -> {
-                            movieListViewModel.setEvent(
-                                MovieListContract.UiEvent.ApplyFilters(effect.params)
-                            )
-                            navController.popBackStack()
+    ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable(Screen.Auth.route) {
+                val viewModel = koinViewModel<AuthViewModel>()
+                LaunchedEffect(viewModel) {
+                    viewModel.sideEffects.collect { effect ->
+                        when (effect) {
+                            AuthContract.SideEffect.NavigateToHome ->
+                                navController.navigate(Screen.MovieList.route) {
+                                    popUpTo(Screen.Auth.route) { inclusive = true }
+                                }
                         }
                     }
                 }
+                AuthScreen(viewModel = viewModel)
             }
-            FilterScreen(
-                viewModel = filterViewModel,
-                onBack = { navController.popBackStack() },
-            )
-        }
 
-        composable(
-            route = Screen.Detail.route,
-            arguments = listOf(
-                navArgument("movieId") { type = NavType.StringType }
-            )
-        ) {
-            DetailScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
+            composable(Screen.MovieList.route) {
+                val movieListViewModel: MovieListViewModel = koinViewModel()
+                val filterViewModel: FilterViewModel = koinViewModel(
+                    viewModelStoreOwner = it
+                )
 
-        composable(Screen.Favorites.route) {
-            FavoritesScreen(
-                viewModel = koinViewModel(),
-                onMovieClick = { movieId ->
-                    navController.navigate(Screen.Detail.createRoute(movieId))
+                MovieListScreen(
+                    viewModel = movieListViewModel,
+                    onMovieClick = { movieId ->
+                        navController.navigate(Screen.Detail.createRoute(movieId))
+                    },
+                    onFilterClick = {
+                        filterViewModel.setEvent(
+                            FilterContract.UiEvent.Initialize(
+                                movieListViewModel.state.value.activeFilters
+                            )
+                        )
+                        navController.navigate(Screen.Filter.route)
+                    },
+                )
+            }
+
+            composable(Screen.Filter.route) {
+                val movieListEntry = remember {
+                    navController.getBackStackEntry(Screen.MovieList.route)
                 }
-            )
-        }
+                val movieListViewModel: MovieListViewModel = koinViewModel(
+                    viewModelStoreOwner = movieListEntry
+                )
+                val filterViewModel: FilterViewModel = koinViewModel(
+                    viewModelStoreOwner = movieListEntry
+                )
 
-        composable(Screen.Watchlist.route) {
-            WatchlistScreen(
-                viewModel = koinViewModel(),
-                onMovieClick = { movieId ->
-                    navController.navigate(Screen.Detail.createRoute(movieId))
-                }
-            )
+                FilterScreen(
+                    viewModel = filterViewModel,
+                    onBack = { navController.popBackStack() },
+                    onApply = { filterParams ->
+                        movieListViewModel.setEvent(
+                            MovieListContract.UiEvent.ApplyFilters(filterParams)
+                        )
+                        navController.popBackStack()
+                    },
+                )
+            }
+
+            composable(
+                route = Screen.Detail.route,
+                arguments = listOf(
+                    navArgument("movieId") { type = NavType.StringType }
+                )
+            ) {
+                DetailScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Favorites.route) {
+                FavoritesScreen(
+                    onMovieClick = { movieId ->
+                        navController.navigate(Screen.Detail.createRoute(movieId))
+                    }
+                )
+            }
+
+            composable(Screen.Watchlist.route) {
+                WatchlistScreen(
+                    onMovieClick = { movieId ->
+                        navController.navigate(Screen.Detail.createRoute(movieId))
+                    }
+                )
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen()
+            }
         }
     }
 }

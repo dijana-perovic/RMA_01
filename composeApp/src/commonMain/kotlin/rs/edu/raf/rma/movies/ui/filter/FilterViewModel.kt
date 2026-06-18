@@ -94,9 +94,7 @@ class FilterViewModel(
 
                     is FilterContract.UiEvent.RetryGenres -> syncGenres()
 
-                    is FilterContract.UiEvent.LoadGenresIfEmpty -> {
-                        if (_state.value.genres.isEmpty()) syncGenres()
-                    }
+                    is FilterContract.UiEvent.LoadGenresIfEmpty -> syncGenres()
                 }
             }
         }

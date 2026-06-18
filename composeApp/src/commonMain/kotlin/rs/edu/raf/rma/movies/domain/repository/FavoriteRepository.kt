@@ -9,4 +9,5 @@ interface FavoriteRepository {
     suspend fun syncFavorites()
     suspend fun addFavorite(imdbId: String)
     suspend fun removeFavorite(imdbId: String)
+    suspend fun clearAll()
 }

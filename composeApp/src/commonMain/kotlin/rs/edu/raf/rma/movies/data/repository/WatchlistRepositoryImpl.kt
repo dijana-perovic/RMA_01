@@ -62,4 +62,6 @@ class WatchlistRepositoryImpl(
             throw it
         }
     }
+
+    override suspend fun clearAll() = watchlistDao.clearAll()
 }

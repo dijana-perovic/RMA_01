@@ -42,7 +42,7 @@ class MovieListViewModel(
         observeEvents()
         observeMoviesFromRoom()
         loadConfig()
-        setEvent(MovieListContract.UiEvent.LoadMovies)
+        syncMovies()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

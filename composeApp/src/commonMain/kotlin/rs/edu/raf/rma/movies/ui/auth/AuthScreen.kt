@@ -1,5 +1,6 @@
 package rs.edu.raf.rma.movies.ui.auth
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -108,58 +108,71 @@ private fun LoginForm(
     state: AuthContract.UiState,
     eventPublisher: (AuthContract.UiEvent) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = state.loginUsername,
-            onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateLoginUsername(it)) },
-            label = { Text("Username") },
-            supportingText = { Text("Min 3 characters: letters, digits, underscore") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            isError = state.error != null,
-        )
-
-        OutlinedTextField(
-            value = state.loginPassword,
-            onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateLoginPassword(it)) },
-            label = { Text("Password") },
-            supportingText = { Text("Min 8 characters") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            isError = state.error != null,
-        )
-
-        if (state.error != null) {
-            Text(
-                text = state.error.message ?: "Something went wrong",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
+            OutlinedTextField(
+                value = state.loginUsername,
+                onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateLoginUsername(it)) },
+                label = { Text("Username") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = state.error != null,
             )
+
+            OutlinedTextField(
+                value = state.loginPassword,
+                onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateLoginPassword(it)) },
+                label = { Text("Password") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                isError = state.error != null,
+            )
+
+            if (state.error != null) {
+                Text(
+                    text = state.error.message ?: "Something went wrong",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            Button(
+                onClick = { eventPublisher(AuthContract.UiEvent.SubmitLogin) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = state.loginFormValid && !state.isLoading,
+            ) {
+                Text("Login")
+            }
         }
 
-        Button(
-            onClick = { eventPublisher(AuthContract.UiEvent.SubmitLogin) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = state.loginFormValid && !state.isLoading,
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            } else {
-                Text("Login")
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    CircularProgressIndicator()
+                    Text(
+                        text = "Signing in...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }
@@ -170,68 +183,83 @@ private fun RegisterForm(
     state: AuthContract.UiState,
     eventPublisher: (AuthContract.UiEvent) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = state.registerFullName,
-            onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateRegisterFullName(it)) },
-            label = { Text("Full Name") },
-            supportingText = { Text("Required") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            isError = state.error != null,
-        )
-
-        OutlinedTextField(
-            value = state.registerUsername,
-            onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateRegisterUsername(it)) },
-            label = { Text("Username") },
-            supportingText = { Text("Min 3 characters: letters, digits, underscore") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            isError = state.error != null,
-        )
-
-        OutlinedTextField(
-            value = state.registerPassword,
-            onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateRegisterPassword(it)) },
-            label = { Text("Password") },
-            supportingText = { Text("Min 8 characters") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            isError = state.error != null,
-        )
-
-        if (state.error != null) {
-            Text(
-                text = state.error.message ?: "Something went wrong",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
+            OutlinedTextField(
+                value = state.registerFullName,
+                onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateRegisterFullName(it)) },
+                label = { Text("Full Name") },
+                supportingText = { Text("Required") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = state.error != null,
             )
+
+            OutlinedTextField(
+                value = state.registerUsername,
+                onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateRegisterUsername(it)) },
+                label = { Text("Username") },
+                supportingText = { Text("Min 3 characters: letters, digits, underscore") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = state.error != null,
+            )
+
+            OutlinedTextField(
+                value = state.registerPassword,
+                onValueChange = { eventPublisher(AuthContract.UiEvent.UpdateRegisterPassword(it)) },
+                label = { Text("Password") },
+                supportingText = { Text("Min 8 characters") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                isError = state.error != null,
+            )
+
+            if (state.error != null) {
+                Text(
+                    text = state.error.message ?: "Something went wrong",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            Button(
+                onClick = { eventPublisher(AuthContract.UiEvent.SubmitRegister) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = state.registerFormValid && !state.isLoading,
+            ) {
+                Text("Create Account")
+            }
         }
 
-        Button(
-            onClick = { eventPublisher(AuthContract.UiEvent.SubmitRegister) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = state.registerFormValid && !state.isLoading,
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            } else {
-                Text("Create Account")
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    CircularProgressIndicator()
+                    Text(
+                        text = "Creating account...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }

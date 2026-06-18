@@ -5,6 +5,7 @@ import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.POST
 import de.jensklingenberg.ktorfit.http.Path
 import de.jensklingenberg.ktorfit.http.Query
+import rs.edu.raf.rma.movies.data.remote.dto.AuthUserDto
 import rs.edu.raf.rma.movies.data.remote.dto.CastMemberDto
 import rs.edu.raf.rma.movies.data.remote.dto.ConfigEntryDto
 import rs.edu.raf.rma.movies.data.remote.dto.GenreDto
@@ -17,7 +18,6 @@ import rs.edu.raf.rma.movies.data.remote.dto.PagedResponse
 interface MovieApi {
 
     // Katalog
-
     @GET("movies")
     suspend fun getMovies(
         @Query("page_size")  pageSize: Int = 30,
@@ -58,7 +58,6 @@ interface MovieApi {
     suspend fun getConfig(): List<ConfigEntryDto>
 
     // Favorites
-
     @GET("me/favorites")
     suspend fun getFavorites(): List<MovieDto>
 
@@ -69,7 +68,6 @@ interface MovieApi {
     suspend fun removeFavorite(@Path("movieId") movieId: String)
 
     // Watchlist
-
     @GET("me/watchlist")
     suspend fun getWatchlist(): List<MovieDto>
 
@@ -78,4 +76,8 @@ interface MovieApi {
 
     @DELETE("me/watchlist/{movieId}")
     suspend fun removeFromWatchlist(@Path("movieId") movieId: String)
+
+    // Profile
+    @GET("me")
+    suspend fun getMe(): AuthUserDto
 }

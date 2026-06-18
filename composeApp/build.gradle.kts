@@ -166,3 +166,9 @@ dependencies {
         add(it, libs.ktorfit.lib)
     }
 }
+
+compose.desktop {
+    application {
+        mainClass = "rs.edu.raf.rma.MainKt"
+    }
+}

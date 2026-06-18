@@ -14,10 +14,12 @@ import rs.edu.raf.rma.movies.data.remote.AuthApi
 import rs.edu.raf.rma.movies.data.remote.dto.LoginRequestDto
 import rs.edu.raf.rma.movies.data.remote.dto.RegisterRequestDto
 import rs.edu.raf.rma.movies.data.remote.dto.toAuthData
+import rs.edu.raf.rma.movies.domain.repository.QuizRepository
 
 class AuthViewModel(
     private val authApi: AuthApi,
     private val authStore: AuthStore,
+    private val quizRepository: QuizRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthContract.UiState())
@@ -82,6 +84,7 @@ class AuthViewModel(
             }.fold(
                 onSuccess = { response ->
                     authStore.setAuthData(response.toAuthData())
+                    quizRepository.syncQuizResults()
                     setState { copy(isLoading = false) }
                     _sideEffects.emit(AuthContract.SideEffect.NavigateToHome)
                 },

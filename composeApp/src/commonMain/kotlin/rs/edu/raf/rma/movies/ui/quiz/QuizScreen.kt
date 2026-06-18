@@ -1,6 +1,5 @@
 package rs.edu.raf.rma.movies.ui.quiz
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*

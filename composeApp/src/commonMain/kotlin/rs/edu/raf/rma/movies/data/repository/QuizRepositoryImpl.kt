@@ -7,14 +7,18 @@ import rs.edu.raf.rma.movies.data.local.dao.MovieDao
 import rs.edu.raf.rma.movies.data.local.dao.QuizDao
 import rs.edu.raf.rma.movies.data.local.entity.MovieDetailEntity
 import rs.edu.raf.rma.movies.data.local.entity.QuizSessionEntity
+import rs.edu.raf.rma.movies.data.remote.MovieApi
 import rs.edu.raf.rma.movies.data.remote.dto.CastMemberDto
 import rs.edu.raf.rma.movies.data.remote.dto.MovieImageDto
+import rs.edu.raf.rma.movies.data.remote.dto.PostQuizResultRequestDto
+import rs.edu.raf.rma.movies.data.remote.dto.QuizResultDto
 import rs.edu.raf.rma.movies.domain.model.QuizQuestion
 import rs.edu.raf.rma.movies.domain.model.QuizResult
 import rs.edu.raf.rma.movies.domain.model.QuizSession
 import rs.edu.raf.rma.movies.domain.repository.QuizRepository
 
 class QuizRepositoryImpl(
+    private val api: MovieApi,
     private val movieDao: MovieDao,
     private val quizDao: QuizDao,
 ) : QuizRepository {
@@ -28,7 +32,11 @@ class QuizRepositoryImpl(
     }
 
     override suspend fun hasEnoughMovies(): Boolean =
-        quizDao.getEligibleMovieCount() >= MIN_ELIGIBLE_MOVIES
+        movieDao.getEligibleMovieCount() >= MIN_ELIGIBLE_MOVIES
+
+    override suspend fun clearAll() {
+        quizDao.clearAll()
+    }
 
     override suspend fun generateQuestions(): List<QuizQuestion> {
         val allDetails = movieDao.getAllMovieDetails()
@@ -179,12 +187,21 @@ class QuizRepositoryImpl(
         }.getOrDefault(emptyList())
 
     override suspend fun saveResult(result: QuizResult) {
-        quizDao.insertSession(
+        val response = api.submitQuizResult(
+            PostQuizResultRequestDto(
+                score = result.score,
+                category = 1
+            )
+        )
+
+        quizDao.upsertSession(
             QuizSessionEntity(
-                score            = result.score,
-                correctAnswers   = result.correctAnswers,
+                id = response.result.id,
+                score = response.result.score,
+                correctAnswers = result.correctAnswers,
                 incorrectAnswers = result.incorrectAnswers,
-                timeUsedSeconds  = result.timeUsedSeconds,
+                timeUsedSeconds = result.timeUsedSeconds,
+                playedAt = response.result.playedAt
             )
         )
     }
@@ -208,6 +225,28 @@ class QuizRepositoryImpl(
                 )
             }
         }
+
+    override suspend fun syncQuizResults() {
+        val response = api.getQuizResults(
+            page = 1,
+            pageSize = 100
+        )
+
+        quizDao.clearAll()
+
+        response.items.forEach {
+            quizDao.upsertSession(
+                QuizSessionEntity(
+                    id = it.id,
+                    score = it.score,
+                    correctAnswers = 0,
+                    incorrectAnswers = 0,
+                    timeUsedSeconds = 0,
+                    playedAt = it.playedAt
+                )
+            )
+        }
+    }
 
     private enum class QuestionType {
         GUESS_MOVIE, GUESS_YEAR, GUESS_ACTOR

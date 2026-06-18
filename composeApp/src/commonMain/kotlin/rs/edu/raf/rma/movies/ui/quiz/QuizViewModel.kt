@@ -167,7 +167,9 @@ class QuizViewModel(
         )
 
         viewModelScope.launch {
-            quizRepository.saveResult(result)
+            runCatching {
+                quizRepository.saveResult(result)
+            }
             _sideEffects.emit(QuizContract.SideEffect.NavigateToResult(result))
         }
     }

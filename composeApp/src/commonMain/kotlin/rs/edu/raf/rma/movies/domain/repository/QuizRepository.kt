@@ -12,4 +12,6 @@ interface QuizRepository {
     fun observeSessionCount(): Flow<Int>
     fun observeSessions(): Flow<List<QuizSession>>
     suspend fun hasEnoughMovies(): Boolean
+    suspend fun clearAll()
+    suspend fun syncQuizResults()
 }

@@ -47,4 +47,7 @@ interface MovieDao {
 
     @Query("SELECT * FROM movie_details")
     suspend fun getAllMovieDetails(): List<MovieDetailEntity>
+
+    @Query("SELECT COUNT(*) FROM movie_details WHERE imagesJson != '[]'")
+    suspend fun getEligibleMovieCount(): Int
 }

@@ -1,16 +1,16 @@
 package rs.edu.raf.rma.movies.data.local.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import rs.edu.raf.rma.movies.data.local.entity.QuizSessionEntity
 
 @Dao
 interface QuizDao {
 
-    @Insert
-    suspend fun insertSession(session: QuizSessionEntity)
+    @Upsert
+    suspend fun upsertSession(session: QuizSessionEntity)
 
     @Query("SELECT * FROM quiz_sessions ORDER BY playedAt DESC")
     fun observeSessions(): Flow<List<QuizSessionEntity>>
@@ -21,6 +21,6 @@ interface QuizDao {
     @Query("SELECT COUNT(*) FROM quiz_sessions")
     fun observeSessionCount(): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM movie_details WHERE imagesJson != '[]'")
-    suspend fun getEligibleMovieCount(): Int
+    @Query("DELETE FROM quiz_sessions")
+    suspend fun clearAll()
 }

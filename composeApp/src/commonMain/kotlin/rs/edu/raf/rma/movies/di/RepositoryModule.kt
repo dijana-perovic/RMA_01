@@ -23,5 +23,5 @@ val moviesRepositoryModule = module {
     single<FavoriteRepository> { FavoriteRepositoryImpl(get(), get()) }
     single<WatchlistRepository>{ WatchlistRepositoryImpl(get(), get()) }
     single<ProfileRepository>  { ProfileRepositoryImpl(get(), get(), get()) }
-    single<QuizRepository>     { QuizRepositoryImpl(get(), get()) }
+    single<QuizRepository>     { QuizRepositoryImpl(get(), get(), get())}
 }

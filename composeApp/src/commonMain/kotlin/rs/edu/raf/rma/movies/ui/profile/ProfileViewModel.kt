@@ -44,6 +44,7 @@ class ProfileViewModel(
         observeQuizStats()
         setEvent(ProfileContract.UiEvent.LoadProfile)
         syncLists()
+        syncQuizResults()
     }
 
     private fun observeCounts() {
@@ -90,11 +91,12 @@ class ProfileViewModel(
 
     private fun logout() {
         viewModelScope.launch {
-            // Briše token
-            authStore.clearAuthData()
             // Briše lokalne korisničke podatke
             favoriteRepository.clearAll()
             watchlistRepository.clearAll()
+            quizRepository.clearAll()
+            // Briše token
+            authStore.clearAuthData()
         }
     }
 
@@ -113,5 +115,11 @@ class ProfileViewModel(
         quizRepository.observeSessionCount()
             .onEach { count -> setState { copy(quizPlayed = count) } }
             .launchIn(viewModelScope)
+    }
+
+    private fun syncQuizResults() {
+        viewModelScope.launch {
+            quizRepository.syncQuizResults()
+        }
     }
 }

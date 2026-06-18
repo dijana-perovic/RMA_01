@@ -1,5 +1,6 @@
 package rs.edu.raf.rma.movies.data.remote
 
+import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.DELETE
 import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.POST
@@ -14,6 +15,9 @@ import rs.edu.raf.rma.movies.data.remote.dto.MovieDto
 import rs.edu.raf.rma.movies.data.remote.dto.MovieImagesResponseDto
 import rs.edu.raf.rma.movies.data.remote.dto.MovieVideoDto
 import rs.edu.raf.rma.movies.data.remote.dto.PagedResponse
+import rs.edu.raf.rma.movies.data.remote.dto.PostQuizResultRequestDto
+import rs.edu.raf.rma.movies.data.remote.dto.PostQuizResultResponseDto
+import rs.edu.raf.rma.movies.data.remote.dto.QuizResultDto
 
 interface MovieApi {
 
@@ -80,4 +84,15 @@ interface MovieApi {
     // Profile
     @GET("me")
     suspend fun getMe(): AuthUserDto
+
+    @POST("leaderboard")
+    suspend fun submitQuizResult(
+        @Body request: PostQuizResultRequestDto
+    ): PostQuizResultResponseDto
+
+    @GET("me/quiz-results")
+    suspend fun getQuizResults(
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 100,
+    ): PagedResponse<QuizResultDto>
 }

@@ -39,7 +39,6 @@ class MovieRepositoryImpl(
                 maxYear   = filters.yearTo,
                 minRating = filters.minRating,
             )
-            movieDao.clearMovies()
             movieDao.upsertMovies(response.items.map { it.toEntity() })
         }.onFailure { Napier.e("syncMovies failed", it) }
     }
@@ -56,7 +55,6 @@ class MovieRepositoryImpl(
 
     override suspend fun bootstrapIfNeeded() {
         val count = movieDao.getCount()
-        //Napier.d("Movie count BEFORE bootstrap = $count")
         if (count >= 100) return  // već bootstrapovano
 
         runCatching {
@@ -76,7 +74,6 @@ class MovieRepositoryImpl(
                     val images = api.getImages(movie.imdbId).backdrops
                     val videos = api.getVideos(movie.imdbId)
                     movieDao.upsertMovieDetail(detail.toEntity(cast, images, videos))
-                    //Napier.d("Movie count AFTER bootstrap = ${movieDao.getCount()}")
                 }
             }
         }.onFailure { Napier.e("bootstrapIfNeeded failed", it) }

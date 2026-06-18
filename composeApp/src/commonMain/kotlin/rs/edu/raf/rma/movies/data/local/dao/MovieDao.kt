@@ -44,4 +44,7 @@ interface MovieDao {
 
     @Query("DELETE FROM movies")
     suspend fun clearMovies()
+
+    @Query("SELECT * FROM movie_details")
+    suspend fun getAllMovieDetails(): List<MovieDetailEntity>
 }

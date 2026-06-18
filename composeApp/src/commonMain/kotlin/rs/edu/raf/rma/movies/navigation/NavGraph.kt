@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -32,6 +33,8 @@ import rs.edu.raf.rma.movies.ui.movielist.MovieListContract
 import rs.edu.raf.rma.movies.ui.movielist.MovieListScreen
 import rs.edu.raf.rma.movies.ui.movielist.MovieListViewModel
 import rs.edu.raf.rma.movies.ui.profile.ProfileScreen
+import rs.edu.raf.rma.movies.ui.quiz.QuizResultScreen
+import rs.edu.raf.rma.movies.ui.quiz.QuizScreen
 import rs.edu.raf.rma.movies.ui.watchlist.WatchlistScreen
 
 private val bottomNavRoutes = setOf(
@@ -39,6 +42,7 @@ private val bottomNavRoutes = setOf(
     Screen.Favorites.route,
     Screen.Watchlist.route,
     Screen.Profile.route,
+    Screen.Quiz.route,
 )
 
 @Composable
@@ -105,6 +109,16 @@ fun AppNavGraph(startDestination: String) {
                         },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile") }
+                    )
+                    NavigationBarItem(
+                        selected = currentRoute == Screen.Quiz.route,
+                        onClick = {
+                            navController.navigate(Screen.Quiz.route) {
+                                popUpTo(Screen.MovieList.route)
+                            }
+                        },
+                        icon = { Icon(Icons.Default.Quiz, contentDescription = "Quiz") },
+                        label = { Text("Quiz") },
                     )
                 }
             }
@@ -204,6 +218,51 @@ fun AppNavGraph(startDestination: String) {
 
             composable(Screen.Profile.route) {
                 ProfileScreen()
+            }
+
+            composable(Screen.Quiz.route) {
+                QuizScreen(
+                    onNavigateToResult = { result ->
+                        navController.navigate(
+                            Screen.QuizResult.createRoute(
+                                score    = result.score,
+                                correct  = result.correctAnswers,
+                                incorrect = result.incorrectAnswers,
+                                time     = result.timeUsedSeconds,
+                            )
+                        ) {
+                            popUpTo(Screen.Quiz.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateBack = {
+                        navController.navigate(Screen.MovieList.route) {
+                            popUpTo(Screen.Quiz.route) { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            composable(
+                route = Screen.QuizResult.route,
+                arguments = listOf(
+                    navArgument("score")            { type = NavType.FloatType },
+                    navArgument("correctAnswers")   { type = NavType.IntType },
+                    navArgument("incorrectAnswers") { type = NavType.IntType },
+                    navArgument("timeUsedSeconds")  { type = NavType.IntType },
+                ),
+            ) {
+                QuizResultScreen(
+                    onPlayAgain = {
+                        navController.navigate(Screen.Quiz.route) {
+                            popUpTo(Screen.QuizResult.route) { inclusive = true }
+                        }
+                    },
+                    onGoHome = {
+                        navController.navigate(Screen.MovieList.route) {
+                            popUpTo(Screen.QuizResult.route) { inclusive = true }
+                        }
+                    },
+                )
             }
         }
     }

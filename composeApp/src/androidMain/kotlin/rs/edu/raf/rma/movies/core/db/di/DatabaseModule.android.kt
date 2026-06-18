@@ -20,4 +20,5 @@ actual fun databaseModule() = module {
     single { get<AppDatabase>().genreDao() }
     single { get<AppDatabase>().favoriteDao() }
     single { get<AppDatabase>().watchlistDao() }
+    single { get<AppDatabase>().quizDao() }
 }

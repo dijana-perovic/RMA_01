@@ -12,7 +12,7 @@ actual fun databaseModule() = module {
             builder = Room.databaseBuilder<AppDatabase>(
                 name = File(System.getProperty("user.home"), ".showtime/showtime.db")
                     .also { it.parentFile?.mkdirs() }
-                    .absolutePath
+                    .absolutePath,
             )
         )
     }
@@ -20,4 +20,5 @@ actual fun databaseModule() = module {
     single { get<AppDatabase>().genreDao() }
     single { get<AppDatabase>().favoriteDao() }
     single { get<AppDatabase>().watchlistDao() }
+    single { get<AppDatabase>().quizDao() }
 }

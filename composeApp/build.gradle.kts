@@ -30,6 +30,10 @@ kotlin {
     }
     
     jvm()
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
     
     sourceSets {
         androidMain.dependencies {

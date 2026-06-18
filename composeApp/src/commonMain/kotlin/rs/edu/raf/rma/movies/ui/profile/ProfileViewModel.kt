@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import rs.edu.raf.rma.movies.core.auth.AuthStore
 import rs.edu.raf.rma.movies.domain.repository.FavoriteRepository
 import rs.edu.raf.rma.movies.domain.repository.ProfileRepository
+import rs.edu.raf.rma.movies.domain.repository.QuizRepository
 import rs.edu.raf.rma.movies.domain.repository.WatchlistRepository
 
 class ProfileViewModel(
@@ -20,6 +21,7 @@ class ProfileViewModel(
     private val authStore: AuthStore,
     private val favoriteRepository: FavoriteRepository,
     private val watchlistRepository: WatchlistRepository,
+    private val quizRepository: QuizRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileContract.UiState())
@@ -39,6 +41,7 @@ class ProfileViewModel(
     init {
         observeEvents()
         observeCounts()
+        observeQuizStats()
         setEvent(ProfileContract.UiEvent.LoadProfile)
         syncLists()
     }
@@ -100,5 +103,15 @@ class ProfileViewModel(
             favoriteRepository.syncFavorites()
             watchlistRepository.syncWatchlist()
         }
+    }
+
+    private fun observeQuizStats() {
+        quizRepository.observeBestScore()
+            .onEach { score -> setState { copy(bestScore = score) } }
+            .launchIn(viewModelScope)
+
+        quizRepository.observeSessionCount()
+            .onEach { count -> setState { copy(quizPlayed = count) } }
+            .launchIn(viewModelScope)
     }
 }

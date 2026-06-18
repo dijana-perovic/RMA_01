@@ -53,4 +53,32 @@ class MovieRepositoryImpl(
             movieDao.upsertMovieDetail(detail.toEntity(cast, images, videos))
         }.onFailure { Napier.e("syncMovieDetail($id) failed", it) }
     }
+
+    override suspend fun bootstrapIfNeeded() {
+        val count = movieDao.getCount()
+        //Napier.d("Movie count BEFORE bootstrap = $count")
+        if (count >= 100) return  // već bootstrapovano
+
+        runCatching {
+            // Učitaj 100 top filmova po ratingu
+            val response = api.getMovies(
+                pageSize = 100,
+                sortBy   = "imdb_rating",
+                sortOrder = "desc",
+            )
+            movieDao.upsertMovies(response.items.map { it.toEntity() })
+
+            // Za svaki film učitaj detalje (cast, slike) za kviz pool
+            response.items.forEach { movie ->
+                runCatching {
+                    val detail = api.getMovieDetail(movie.imdbId)
+                    val cast   = api.getCast(movie.imdbId).items
+                    val images = api.getImages(movie.imdbId).backdrops
+                    val videos = api.getVideos(movie.imdbId)
+                    movieDao.upsertMovieDetail(detail.toEntity(cast, images, videos))
+                    //Napier.d("Movie count AFTER bootstrap = ${movieDao.getCount()}")
+                }
+            }
+        }.onFailure { Napier.e("bootstrapIfNeeded failed", it) }
+    }
 }

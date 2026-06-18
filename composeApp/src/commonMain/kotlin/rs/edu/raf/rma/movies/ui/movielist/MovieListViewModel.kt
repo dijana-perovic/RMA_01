@@ -2,7 +2,9 @@ package rs.edu.raf.rma.movies.ui.movielist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -43,6 +45,7 @@ class MovieListViewModel(
         observeMoviesFromRoom()
         loadConfig()
         syncMovies()
+        bootstrap()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -92,6 +95,12 @@ class MovieListViewModel(
         viewModelScope.launch {
             setState { copy(isLoading = true, error = null) }
             movieRepository.syncMovies(filterFlow.value)
+        }
+    }
+
+    private fun bootstrap() {
+        viewModelScope.launch(Dispatchers.IO) {
+            movieRepository.bootstrapIfNeeded()
         }
     }
 }

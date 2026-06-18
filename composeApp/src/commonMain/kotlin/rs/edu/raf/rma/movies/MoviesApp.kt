@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import org.koin.compose.viewmodel.koinViewModel
 import rs.edu.raf.rma.movies.navigation.AppNavGraph
-import rs.edu.raf.rma.movies.navigation.Screen
 import rs.edu.raf.rma.movies.ui.splash.BootState
 import rs.edu.raf.rma.movies.ui.splash.SplashScreen
 import rs.edu.raf.rma.movies.ui.splash.SplashViewModel

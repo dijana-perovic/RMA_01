@@ -8,6 +8,8 @@ import rs.edu.raf.rma.movies.ui.favorites.FavoritesViewModel
 import rs.edu.raf.rma.movies.ui.filter.FilterViewModel
 import rs.edu.raf.rma.movies.ui.movielist.MovieListViewModel
 import rs.edu.raf.rma.movies.ui.profile.ProfileViewModel
+import rs.edu.raf.rma.movies.ui.quiz.QuizResultViewModel
+import rs.edu.raf.rma.movies.ui.quiz.QuizViewModel
 import rs.edu.raf.rma.movies.ui.splash.SplashViewModel
 import rs.edu.raf.rma.movies.ui.watchlist.WatchlistViewModel
 
@@ -20,4 +22,6 @@ val moviesViewModelModule = module {
     viewModelOf(::FavoritesViewModel)
     viewModelOf(::WatchlistViewModel)
     viewModelOf(::ProfileViewModel)
+    viewModelOf(::QuizViewModel)
+    viewModelOf(::QuizResultViewModel)
 }

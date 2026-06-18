@@ -10,4 +10,5 @@ interface MovieRepository {
     fun observeMovieDetail(id: String): Flow<MovieDetail?>
     suspend fun syncMovies(filters: FilterParams)
     suspend fun syncMovieDetail(id: String)
+    suspend fun bootstrapIfNeeded()
 }

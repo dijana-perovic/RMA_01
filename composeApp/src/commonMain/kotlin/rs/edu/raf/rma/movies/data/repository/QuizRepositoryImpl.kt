@@ -11,7 +11,6 @@ import rs.edu.raf.rma.movies.data.remote.MovieApi
 import rs.edu.raf.rma.movies.data.remote.dto.CastMemberDto
 import rs.edu.raf.rma.movies.data.remote.dto.MovieImageDto
 import rs.edu.raf.rma.movies.data.remote.dto.PostQuizResultRequestDto
-import rs.edu.raf.rma.movies.data.remote.dto.QuizResultDto
 import rs.edu.raf.rma.movies.domain.model.QuizQuestion
 import rs.edu.raf.rma.movies.domain.model.QuizResult
 import rs.edu.raf.rma.movies.domain.model.QuizSession

@@ -42,7 +42,6 @@ private val bottomNavRoutes = setOf(
     Screen.Favorites.route,
     Screen.Watchlist.route,
     Screen.Profile.route,
-    Screen.Quiz.route,
 )
 
 @Composable
@@ -113,9 +112,7 @@ fun AppNavGraph(startDestination: String) {
                     NavigationBarItem(
                         selected = currentRoute == Screen.Quiz.route,
                         onClick = {
-                            navController.navigate(Screen.Quiz.route) {
-                                popUpTo(Screen.MovieList.route)
-                            }
+                            navController.navigate(Screen.Quiz.route)
                         },
                         icon = { Icon(Icons.Default.Quiz, contentDescription = "Quiz") },
                         label = { Text("Quiz") },
@@ -235,9 +232,7 @@ fun AppNavGraph(startDestination: String) {
                         }
                     },
                     onNavigateBack = {
-                        navController.navigate(Screen.MovieList.route) {
-                            popUpTo(Screen.Quiz.route) { inclusive = true }
-                        }
+                        navController.popBackStack()
                     },
                 )
             }
